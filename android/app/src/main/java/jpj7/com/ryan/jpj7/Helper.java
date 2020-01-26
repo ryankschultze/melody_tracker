@@ -120,8 +120,8 @@ public class Helper {
 			while((line=br.readLine())!=null) {
 //			System.out.println(line);
 				StringTokenizer st=new StringTokenizer(line);
-				Double e1=Double.parseDouble(st.nextToken());
-				Double e2=Double.parseDouble(st.nextToken());;
+				Float e1=Float.parseFloat(st.nextToken());
+				Float e2=Float.parseFloat(st.nextToken());
 				Complex c=new Complex(e1,e2);
 				data.add(c);
 			}

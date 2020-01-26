@@ -10,12 +10,12 @@ import static java.lang.Math.floor;
 
 public class STFT {
 	Helper help=new Helper();
-	double fs;
-	double overlap=0.5;
-	double windowLength=0.05;
+	float fs;
+	float overlap=0.5f;
+	float windowLength=0.05f;
 	Complex[] signal;
-	double[][] result;
-	public STFT(Complex[] signal, Double fs, Double overlap,Double windowLength) {
+	float[][] result;
+	public STFT(Complex[] signal, Float fs, Float overlap,Float windowLength) {
 		this.fs=fs;
 		this.overlap=overlap;
 		this.windowLength=windowLength;
@@ -28,7 +28,7 @@ public class STFT {
 
 	}
 
-	private Complex[] resample(Complex[] signal, double fs) {
+	private Complex[] resample(Complex[] signal, float fs) {
 		int ratio=(int)fs/22050;
 		Log.d("MyApp", "resample: Resampling signal down from "+ fs+ "Hz to "+22050+"Hz with ratio of "+ratio);
 		Complex[] newSig=new Complex[signal.length/ratio];
@@ -44,7 +44,7 @@ public class STFT {
 		return signal;
 	}
 
-	public STFT(Complex[] signal, Double fs) {
+	public STFT(Complex[] signal, Float fs) {
 		this.fs=fs;
 		this.signal=signal;
 		if(this.fs>22050){
@@ -55,16 +55,16 @@ public class STFT {
 	}
 
 	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
-	public double[][] stft_short(Complex[] buffer) {
+	public float[][] stft_short(Complex[] buffer) {
 
 		System.out.println("Buffer Length: "+buffer.length);
 		int fft_size=1024;
 		int hop_size= 256;
 		int total_segments=(int) Math.ceil(((float)buffer.length)/((float)hop_size));
 		float tmax=((float)buffer.length)/((float)this.fs/2);
-		result=new double[total_segments][fft_size/2];
+		result=new float[total_segments][fft_size/2];
 
-		//Pad proc array to Double size
+		//Pad proc array to Float size
 		Complex[] proc=new Complex[buffer.length+fft_size];
 		System.out.println("Proc Length:"+proc.length);
 		Arrays.fill(proc,new Complex(0,0));
@@ -92,7 +92,7 @@ public class STFT {
 				segment[j]=proc[current_hop+j];
 			}
 
-			Double[] windowed=hanning(segment,i);
+			Float[] windowed=hanning(segment,i);
 
 
 			int inner_pad_size=windowed.length;
@@ -104,7 +104,7 @@ public class STFT {
 
 			Arrays.fill(padded, (new Complex(0,0)));
 			for(int j=0; j<windowed.length;j++) {
-				padded[j]= new Complex(windowed[j],0.0);
+				padded[j]= new Complex(windowed[j],0);
 
 			}
 
@@ -114,12 +114,12 @@ public class STFT {
 
 
 			for(int j=0; j<spectrum.length;j++)
-				spectrum[j]=spectrum[j].scale(1.0/fft_size);
+				spectrum[j]=spectrum[j].scale((float) (1.0/fft_size));
 
 
 
 
-			double[] autopower=getAutopower(spectrum);
+			float[] autopower=getAutopower(spectrum);
 
 
 
@@ -131,11 +131,11 @@ public class STFT {
 //		System.out.println(result[0].length);
 		for(int i=0; i<result.length;i++) {
 			for(int j=0; j<result[i].length;j++) {
-				result[i][j]=20*Math.log10(result[i][j]);
-				if(result[i][j]<-40.0)
-					result[i][j]=-40.0;
-				if(result[i][j]>200.0)
-					result[i][j]=200.0;
+				result[i][j]= (float) (20*Math.log10(result[i][j]));
+				if(result[i][j]<-40.0f)
+					result[i][j]=-40.f;
+				if(result[i][j]>200.0f)
+					result[i][j]=200.0f;
 			}
 		}
 //		System.out.println(result.length);
@@ -152,7 +152,7 @@ public class STFT {
 	}
 	
 	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
-	public double[][] stft(Complex[] buffer) {
+	public float[][] stft(Complex[] buffer) {
 		
 		System.out.println("Buffer Length: "+buffer.length);
 		int samples=(int) Math.pow(2, Math.log(this.fs)/Math.log(2.0)+1e-10);
@@ -160,16 +160,16 @@ public class STFT {
 		int hop_size= (int) Math.floor(fft_size*this.windowLength*(1-this.overlap));
 		int total_segments=(int) Math.ceil(((float)buffer.length)/((float)hop_size));
 		float tmax=((float)buffer.length)/((float)this.fs/2);
-		result=new double[total_segments][fft_size/2];
+		result=new float[total_segments][fft_size/2];
 		
-		//Pad proc array to Double size
+		//Pad proc array to Float size
 		Complex[] proc=new Complex[buffer.length+fft_size];
 		System.out.println("Proc Length:"+proc.length);
 		Arrays.fill(proc,new Complex(0,0));
 		
 		//PLEASE DON'T ARBITRARILY SCALE??
 		for(int i=0; i<buffer.length; i++) {
-			proc[i]=buffer[i].mult(new Complex(32767.9438,0));
+			proc[i]=buffer[i].mult(new Complex(32767.9438f,0));
 //			if(27*hop_size>i && i>25*hop_size)System.out.print(proc[i]);
 		}
 		print("Total Samples:"+buffer.length);
@@ -196,7 +196,7 @@ public class STFT {
 				
 //			System.out.println();
 			
-			Double[] windowed=hanning(segment,i);
+			Float[] windowed=hanning(segment,i);
 //			if(i==1) {
 //				for(int j=0; j<segment.length;j++) {
 //					System.out.println(windowed[j]+" ");
@@ -213,7 +213,7 @@ public class STFT {
 			
 			Arrays.fill(padded, (new Complex(0,0)));
 			for(int j=0; j<windowed.length;j++) {
-				padded[j]= new Complex(windowed[j],0.0);
+				padded[j]= new Complex(windowed[j],0.0f);
 				
 			}
 			
@@ -270,7 +270,7 @@ public class STFT {
 //				}
 //			}
 			for(int j=0; j<spectrum.length;j++)
-				spectrum[j]=spectrum[j].scale(1.0/fft_size);
+				spectrum[j]=spectrum[j].scale((float) (1.0/fft_size));
 			
 			
 //			if(i==0) {
@@ -282,7 +282,7 @@ public class STFT {
 //			}
 			
 			
-			double[] autopower=getAutopower(spectrum);
+			float[] autopower=getAutopower(spectrum);
 			
 			
 
@@ -308,11 +308,11 @@ public class STFT {
 //		System.out.println(result[0].length);
 		for(int i=0; i<result.length;i++) {
 			for(int j=0; j<result[i].length;j++) {
-				result[i][j]=20*Math.log10(result[i][j]);
-				if(result[i][j]<-40.0) 
-					result[i][j]=-40.0;
-				if(result[i][j]>200.0) 
-					result[i][j]=200.0;
+				result[i][j]= (float) (20*Math.log10(result[i][j]));
+				if(result[i][j]<-40.0f)
+					result[i][j]=-40.0f;
+				if(result[i][j]>200.0f)
+					result[i][j]=200.0f;
 			}
 		}
 //		System.out.println(result.length);
@@ -328,16 +328,16 @@ public class STFT {
 		
 	}
 	
-	public Double[] hanning(Complex[] signal, int t) {
+	public Float[] hanning(Complex[] signal, int t) {
 		
-		Double[] result=new Double[signal.length];
+		Float[] result=new Float[signal.length];
 		
 //		print(size);
 //		System.out.println(signal.length);
 		for(int i=0; i<(signal.length) ;i++) {
 //			if(t==1)
 //				System.out.println((0.5 * (1.0 - Math.cos(2.0 * Math.PI * i / (signal.length-1))))*signal[i].re);
-			result[i] =(0.5 * (1.0 - Math.cos(2.0 * Math.PI * i / (signal.length-1))))*signal[i].re;
+			result[i] =(float)(0.5 * (1.0 - Math.cos(2.0 * Math.PI * i / (signal.length-1))))*signal[i].re;
 //			System.out.println(result[i]);
 			
 		}
@@ -358,14 +358,14 @@ public class STFT {
     	}
     }
 	
-	public double[] getAutopower(Complex[] a) {
+	public float[] getAutopower(Complex[] a) {
 		Complex[] b=conjArray(a);
  		if(a.length!=b.length) {
     		System.out.println("ERRROR, ARRAYS MUST BE SAME SIZE");
     		return null;
     	}
     	else {
-        	double[] result=new double[a.length];
+        	float[] result=new float[a.length];
         	for(int i=0; i<result.length; i++) {
         		result[i]=a[i].mult(b[i]).re;
         	}
@@ -381,8 +381,8 @@ public class STFT {
     		
     }
 	
-	private Double[][] transpose(Double[][] array) {
-		Double[][] t=new Double[array[0].length][array.length];
+	private Float[][] transpose(Float[][] array) {
+		Float[][] t=new Float[array[0].length][array.length];
 		
 		for(int i=0; i<array.length; i++ )	{
 			for(int j=0; j<array[0].length;j++) {

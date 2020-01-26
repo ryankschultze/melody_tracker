@@ -27,11 +27,11 @@ public class Tracker {
 	Converter converter=new Converter(440);
 	
 	
-	public Tracker(double[][] data) {
+	public Tracker(float[][] data) {
 		this.SPECTRUM=new Double[data.length][data[0].length];
 		for (int i=0; i<data.length; i++){
 			for(int j=0; j<data[i].length; j++){
-				this.SPECTRUM[i][j]=data[i][j];
+				this.SPECTRUM[i][j]= Double.valueOf(data[i][j]);
 			}
 		}
 		this.FRAMES=data.length;
@@ -405,7 +405,7 @@ public class Tracker {
 		
 		
 		for(int i=0; i<peak_partials.size();i++) {
-			
+
 			Double[] partial=peak_partials.get(i);
 			
 			if(this.COMBS.size()==0) {
@@ -471,7 +471,7 @@ public class Tracker {
 					h_star[0]=k_star;
 					h_star[1]=Math.pow(10, this.SPECTRUM[t][(int)Math.round(k_star)]);
 					
-					Double f0h_star=(double) Math.round(h_star[0]/(predicted_comb.index(h)+1)); 				
+					Double f0h_star=(double) Math.round(h_star[0]/(predicted_comb.index(h)+1));
 					Double[] potential_partial=new Double[2];
 					potential_partial[0]=f0h_star;
 					potential_partial[1]=Math.pow(10, this.SPECTRUM[t][(int)Math.round(f0h_star)]/20);

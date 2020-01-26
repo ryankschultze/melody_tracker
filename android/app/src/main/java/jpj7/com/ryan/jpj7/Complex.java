@@ -1,19 +1,24 @@
 package jpj7.com.ryan.jpj7;
 
 class Complex {
-    public final double re;
-    public final double im;
+    public final float re;
+    public final float im;
  
     public Complex() {
     	
-        this(0.0, 0.0);
+        this(0.0f, 0.0f);
     }
  
-    public Complex(double r, double i) {
+    public Complex(float r, float i) {
         re = r;
         im = i;
     }
- 
+
+    public Complex(double r, double i) {
+        re = (float)r;
+        im = (float)i;
+    }
+
     public Complex add(Complex b) {
         return new Complex(this.re + b.re, this.im + b.im);
     }
@@ -37,7 +42,7 @@ class Complex {
     	return new Complex(this.re, this.im);
     }
     
-    public Complex scale(double s) {
+    public Complex scale(float s) {
     	return new Complex(this.re*s, this.im*s);
     }
     

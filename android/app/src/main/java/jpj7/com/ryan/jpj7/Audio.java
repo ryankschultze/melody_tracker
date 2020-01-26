@@ -24,11 +24,11 @@ import java.util.StringTokenizer;
 public class Audio {
 	
 	WavFile wavFile;
-	double fs;
+	float fs;
 	double[] signal;
 	Complex[] cSignal;
 	Helper help=new Helper();
-	double[][] SPECTRUM;
+	float[][] SPECTRUM;
 	private Tracker t;
 	Converter converter=new Converter();
 	String name;
@@ -68,7 +68,7 @@ public class Audio {
 			//Convert to complex
 			this.cSignal = new Complex[signal.length];
 	        for (int i = 0; i < signal.length; i++)
-	        	this.cSignal[i] = new Complex(signal[i], 0.0);
+	        	this.cSignal[i] = new Complex((float) signal[i], 0.0f);
 	        
 		} catch (IOException | WavFileException e) {
 			// TODO Auto-generated catch block
@@ -76,7 +76,7 @@ public class Audio {
 		}
 	}
 	
-	public double[][] getSTFT(){
+	public float[][] getSTFT(){
 
 
 		Complex[] cSeg;
@@ -85,7 +85,7 @@ public class Audio {
 
 
 		STFT transform=new STFT(cSignal,fs);
-		double[][] spectrum=transform.stft(cSignal);
+		float[][] spectrum=transform.stft(cSignal);
 
 
 //		File output=new File("resources/output.txt");
@@ -120,9 +120,9 @@ public class Audio {
 		return spectrum;
 	}
 
-	public double[][] getSTFT_short(){
+	public float[][] getSTFT_short(){
 		STFT transform=new STFT(cSignal,fs);
-		double[][] spectrum=transform.stft_short(cSignal);
+		float[][] spectrum=transform.stft_short(cSignal);
 		this.SPECTRUM=spectrum;
 		return spectrum;
 	}
@@ -182,6 +182,7 @@ public class Audio {
 		return spectrum;
 	}
 	public ArrayList<Double> track() {
+
 		this.t=new Tracker(this.getSTFT());
 		ArrayList<Double> contour=t.track();
 //		this.t.writeContourToFile(contour);
