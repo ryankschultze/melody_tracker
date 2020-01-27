@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class PianoWriter {
 
@@ -36,7 +37,7 @@ public class PianoWriter {
     @TargetApi(Build.VERSION_CODES.FROYO)
     public void write_image(){
         int w = piano_roll.getWidth(), h = piano_roll.getHeight();
-        int scale=12;
+        int scale=24;
         // create the binary mapping
         for(int i=0; i<piano_roll.getWidth(); i++){
 
@@ -50,7 +51,10 @@ public class PianoWriter {
                 piano_roll.setPixel(i, (int) contour.get(i).doubleValue() - 1, Color.BLACK);
             }
         }
-
+        int min=Collections.min(contour)-3;
+        if(min<0)
+            min=0;
+//        Bitmap resized_p_roll=Bitmap.createBitmap(piano_roll, 0,min,piano_roll.getWidth(), Collections.max(contour)+3);
 
 //        File p_roll= new File(Environment.DIRECTORY_DOWNLOADS.toString()+"/piano_roll.png");
         File p_roll= new File("/storage/emulated/0/Download/Phone/Piano_Rolls/"+filename+".png");

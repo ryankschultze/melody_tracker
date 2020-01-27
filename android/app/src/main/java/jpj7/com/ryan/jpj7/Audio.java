@@ -19,7 +19,7 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-
+import be.tarsos.dsp.resample.Resampler;
 
 public class Audio {
 	
@@ -34,6 +34,7 @@ public class Audio {
 	String name;
 	String path;
 	String src=" /storage/emulated/0/Download/Phone/Misc/";
+	Resampler resampler;
 	public Audio(String f, String name) {
 		Log.d("MyApp","Constructing Audio...");
 		Log.d("MyApp","File: "+f);
@@ -43,8 +44,10 @@ public class Audio {
 		File file=new File(f);
 		this.loadFile(file);
 		this.fs=wavFile.getSampleRate();
-		
-		this.readFile();		
+		resampler=new Resampler(true,0.25,3);
+		this.readFile();
+
+
 	}
 	
 	public void loadFile(File file) {
@@ -64,17 +67,37 @@ public class Audio {
 			//Careful Max Integer Size
 			this.signal=new double[(int) wavFile.getFramesRemaining()];
 			this.wavFile.readFrames(this.signal,  (int) wavFile.getFramesRemaining());
-			
+
+			float[] insig=new float[this.signal.length];
+			for(int i=0; i<this.signal.length; i++){
+
+				insig[i]=(float)this.signal[i];
+//				Log.d("MyApp",""+insig[i]);
+			}
+			Log.d("MyApp","Resampling:");
+			Log.d("MyApp","Buffer Length:"+insig.length);
+			Log.d("MyApp","Resample factor:"+22050.0/this.fs);
+			int new_sample_length= (int) ((22050.0/this.fs)*insig.length);
+			float[] outsig=new float[new_sample_length];
+			Log.d("MyApp","New sample length:"+outsig.length);
+			Log.d("MyApp","Processing...");
+			this.resampler.process(22050.0/this.fs,insig,0,insig.length,true, outsig,0,outsig.length);
+			this.fs=22050;
+
+			Log.d("MyApp","Resample complete.");
 			//Convert to complex
-			this.cSignal = new Complex[signal.length];
-	        for (int i = 0; i < signal.length; i++)
-	        	this.cSignal[i] = new Complex((float) signal[i], 0.0f);
-	        
+			this.cSignal = new Complex[outsig.length];
+	        for (int i = 0; i < outsig.length; i++)
+	        	this.cSignal[i] = new Complex( outsig[i], 0.0f);
+
+//	        help.arrayToFile(outsig,"/resources/signal.txt");
 		} catch (IOException | WavFileException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
+
+
 	
 	public float[][] getSTFT(){
 

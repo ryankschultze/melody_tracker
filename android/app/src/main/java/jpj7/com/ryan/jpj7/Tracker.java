@@ -257,10 +257,10 @@ public class Tracker {
 
 	private void printCurrentCombs() {
 		if(this.COMBS.size()==0) {
-			System.out.println("No active combs...");
+//			System.out.println("No active combs...");
 		}
 		for(int i=0; i<this.COMBS.size(); i++) {
-			System.out.println("C"+i+":");
+//			System.out.println("C"+i+":");
 			this.COMBS.get(i).printCurrentState();
 			System.out.println();
 		}
@@ -311,12 +311,12 @@ public class Tracker {
 			Comb comb=this.COMBS.get(c);
 			
 			if(this.SORTED_PARTIAL_SPACE.size()==0) {
-				System.out.println("No partials available");
+//				System.out.println("No partials available");
 				comb.terminate();
 			}
 			
 			else if(comb.sum_amplitudes()<this.EPSILON*this.SORTED_PARTIAL_SPACE.get(0)[1]) {
-				System.out.println("Below harmonic threshold! Terminating comb...");
+//				System.out.println("Below harmonic threshold! Terminating comb...");
 				comb.terminate();
 			}
 			else if(20*Math.log10(comb.getCurrentCombState().amplitudeAt(0))<0) {
@@ -324,7 +324,7 @@ public class Tracker {
 				comb.terminate();
 			}
 			else if(100.0>comb.estimateF0()||comb.estimateF0()>1100) {
-				System.out.println("Out of range... Terminating");
+//				System.out.println("Out of range... Terminating");
 				comb.terminate();
 			}
 		}
@@ -338,7 +338,7 @@ public class Tracker {
 		for(int c=0; c<this.COMBS.size(); c++) {
 			Comb comb_c=this.COMBS.get(c);
 			if(this.SORTED_PARTIAL_SPACE.size()==0) {
-				System.out.println("No partials...");
+//				System.out.println("No partials...");
 				comb_c.terminate();
 			}
 			else {
@@ -348,9 +348,9 @@ public class Tracker {
 						Comb comb_i=this.COMBS.get(i);
 						
 						if(comb_c.equals(comb_i)) {
-							System.out.println("Redundancy detected! @"+c+"|"+i);
+//							System.out.println("Redundancy detected! @"+c+"|"+i);
 							if(comb_c.length()<comb_i.length()) {
-								System.out.println("Terminating comb..."+c);
+//								System.out.println("Terminating comb..."+c);
 								comb_c.terminate();
 								this.COMBS.remove(comb_c);
 							}
@@ -359,18 +359,18 @@ public class Tracker {
 								if(comb_c.getScore()>comb_i.getScore()) {
 									comb_i.terminate();
 									this.COMBS.remove(comb_i);
-									System.out.println("Terminating comb..."+i);
+//									System.out.println("Terminating comb..."+i);
 								}
 								else {
 									comb_c.terminate();
 									this.COMBS.remove(comb_c);
-									System.out.println("Terminating comb..."+c);
+//									System.out.println("Terminating comb..."+c);
 								}
 							}
 							else {
 								comb_i.terminate();
 								this.COMBS.remove(comb_i);
-								System.out.println("Terminating comb..."+i);
+//								System.out.println("Terminating comb..."+i);
 							}
 						}
 					}
@@ -390,7 +390,7 @@ public class Tracker {
 	private void initializeCombs(int t) {
 		ArrayList<Double[]> peak_partials= new ArrayList<Double[]>();
 		if(this.SORTED_PARTIAL_SPACE.isEmpty()) {
-			System.out.println("No partials to track...");
+//			System.out.println("No partials to track...");
 		}
 		else if(this.SORTED_PARTIAL_SPACE.size()<3) {
 			for(int i=0; i<this.SORTED_PARTIAL_SPACE.size(); i++) {
@@ -416,7 +416,7 @@ public class Tracker {
 					this.COMBS.add(new Comb((this.createL1Comb(partial, t)),this.NH));
 				}
 				else {
-					System.out.println(partial[0]+"Hz is already being tracked...");
+//					System.out.println(partial[0]+"Hz is already being tracked...");
 				}
 			}
 		}
@@ -442,7 +442,7 @@ public class Tracker {
 				
 				this.LEADER_HARMONICS=this.COMBS.get(c).getLeaderHarmonics();
 				if(this.LEADER_HARMONICS.isEmpty()) {
-					System.out.println("No Leader Harmonics");
+//					System.out.println("No Leader Harmonics");
 					this.LEADER_HARMONICS.add(predicted_comb.getPartial(0));
 				}
 				

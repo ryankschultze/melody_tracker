@@ -7,6 +7,8 @@ import android.util.Log;
 import java.util.Arrays;
 
 import static java.lang.Math.floor;
+import be.tarsos.dsp.util.fft.FFT;
+import be.tarsos.dsp.util.fft.FloatFFT;
 
 public class STFT {
 	Helper help=new Helper();
@@ -15,43 +17,23 @@ public class STFT {
 	float windowLength=0.05f;
 	Complex[] signal;
 	float[][] result;
+	FloatFFT transform;
+
 	public STFT(Complex[] signal, Float fs, Float overlap,Float windowLength) {
 		this.fs=fs;
 		this.overlap=overlap;
 		this.windowLength=windowLength;
 		this.signal=signal;
-		if(this.fs>22050){
 
-			this.signal=this.resample(this.signal,this.fs);
-			this.fs=22050;
-		}
 
 	}
 
-	private Complex[] resample(Complex[] signal, float fs) {
-		int ratio=(int)fs/22050;
-		Log.d("MyApp", "resample: Resampling signal down from "+ fs+ "Hz to "+22050+"Hz with ratio of "+ratio);
-		Complex[] newSig=new Complex[signal.length/ratio];
-		for(int i=0; i<newSig.length; i++){
-			Complex average=new Complex(0,0);
-			for(int j=0; j<ratio; j++){
-				average.add(signal[i*ratio+j]);
-			}
-			average=average.mult(new Complex(1/ratio,0));
-			newSig[i]=average;
-		}
-		signal=newSig;
-		return signal;
-	}
+
 
 	public STFT(Complex[] signal, Float fs) {
 		this.fs=fs;
 		this.signal=signal;
-		if(this.fs>22050){
 
-			this.signal=this.resample(this.signal,this.fs);
-			this.fs=22050;
-		}
 	}
 
 	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
@@ -60,6 +42,7 @@ public class STFT {
 		System.out.println("Buffer Length: "+buffer.length);
 		int fft_size=1024;
 		int hop_size= 256;
+		this.transform=new FloatFFT(1024);
 		int total_segments=(int) Math.ceil(((float)buffer.length)/((float)hop_size));
 		float tmax=((float)buffer.length)/((float)this.fs/2);
 		result=new float[total_segments][fft_size/2];
@@ -72,7 +55,7 @@ public class STFT {
 		//PLEASE DON'T ARBITRARILY SCALE??
 		//16 bit audio
 		for(int i=0; i<buffer.length; i++) {
-			proc[i]=buffer[i].mult(new Complex(32768,0));
+			proc[i]=buffer[i].mult(new Complex(32767,0));
 //			if(27*hop_size>i && i>25*hop_size)System.out.print(proc[i]);
 		}
 		print("Total Samples:"+buffer.length);
@@ -99,31 +82,44 @@ public class STFT {
 			if (Math.log(fft_size) % 2 != 0) {
 				inner_pad_size=(int) Math.pow(2,floor(Math.log(windowed.length+fft_size)/Math.log(2)+1e-10)+1);
 			}
-			Complex[] padded=new Complex[inner_pad_size];
+
+			//For my FFT
+//			Complex[] padded=new Complex[inner_pad_size];
+//
+//
+//			Arrays.fill(padded, (new Complex(0,0)));
+//			for(int j=0; j<windowed.length;j++) {
+//				padded[j]= new Complex(windowed[j],0);
+//
+//			}
+// 			Complex[] spectrum= FFT2.fft(padded);
+//			for(int j=0; j<spectrum.length;j++)
+//				spectrum[j]=spectrum[j].scale((float) (1.0/fft_size));
+//			float[] autopower=getAutopower(spectrum);
+
+			//For Tarsos FFT
+			float[] padded=new float[inner_pad_size];
 
 
-			Arrays.fill(padded, (new Complex(0,0)));
+
 			for(int j=0; j<windowed.length;j++) {
-				padded[j]= new Complex(windowed[j],0);
+				padded[j]= windowed[j];
 
 			}
 
-
-			Complex[] spectrum= FFT2.fft(padded);
-
-
-
-			for(int j=0; j<spectrum.length;j++)
-				spectrum[j]=spectrum[j].scale((float) (1.0/fft_size));
+//			transform.forwardTransform(padded);
+//			float[] autopower=new float[fft_size];
+//			transform.modulus(padded,autopower);
 
 
 
 
-			float[] autopower=getAutopower(spectrum);
 
 
 
-			result[i]=Arrays.copyOfRange(autopower, 0, (int) fft_size/2);
+
+
+//			result[i]=Arrays.copyOfRange(autopower, 0, (int) fft_size/2);
 
 		}
 
@@ -138,11 +134,13 @@ public class STFT {
 					result[i][j]=200.0f;
 			}
 		}
-//		System.out.println(result.length);
-//		for(int j=0; j<result.length;j++) {
-//				System.out.println(result[0][j]+" ");
-//			}
-//			System.out.println();
+		System.out.println(result.length);
+		System.out.println(result[0].length);
+		System.out.println(result[0][220]+" ");
+		System.out.println(result[0][221]+" ");
+		System.out.println(result[0][530]+" ");
+		System.out.println(result[0][531]+" ");
+		System.out.println();
 
 
 		Log.d("MyApp","Transform complete");
@@ -161,7 +159,7 @@ public class STFT {
 		int total_segments=(int) Math.ceil(((float)buffer.length)/((float)hop_size));
 		float tmax=((float)buffer.length)/((float)this.fs/2);
 		result=new float[total_segments][fft_size/2];
-		
+
 		//Pad proc array to Float size
 		Complex[] proc=new Complex[buffer.length+fft_size];
 		System.out.println("Proc Length:"+proc.length);
@@ -169,8 +167,7 @@ public class STFT {
 		
 		//PLEASE DON'T ARBITRARILY SCALE??
 		for(int i=0; i<buffer.length; i++) {
-			proc[i]=buffer[i].mult(new Complex(32767.9438f,0));
-//			if(27*hop_size>i && i>25*hop_size)System.out.print(proc[i]);
+			proc[i]=buffer[i].mult(new Complex(32767.0f,0));
 		}
 		print("Total Samples:"+buffer.length);
 		print("Total Segments:"+total_segments);
@@ -183,12 +180,18 @@ public class STFT {
 			int current_hop=hop_size*i;
 			
 			Complex[] segment=new Complex[(int) (fft_size*windowLength+1)];
+//			Log.d("SEG","Segment Length:"+segment.length);
 			Arrays.fill(segment, (new Complex(0,0)));
 //			print(i);
 			for(int j=0; j<segment.length;j++)
 			{
 //				print(j);
 				segment[j]=proc[current_hop+j];
+                if(i==1){
+
+                    if(j<3||j>=segment.length-4)
+                        Log.d("SEG:",""+segment[j]);
+                }
 			}
 //			for(int j=0; j<segment.length; j++)
 //				if(i==(int)(total_segments-1))
@@ -203,21 +206,89 @@ public class STFT {
 //				}
 //				System.out.println();
 //			}
-			
-			int inner_pad_size=windowed.length;
-			if (Math.log(fft_size) % 2 != 0) {
-	        	inner_pad_size=(int) Math.pow(2,floor(Math.log(windowed.length+fft_size)/Math.log(2)+1e-10)+1);
-			}
-	        Complex[] padded=new Complex[inner_pad_size];
 
-			
-			Arrays.fill(padded, (new Complex(0,0)));
-			for(int j=0; j<windowed.length;j++) {
-				padded[j]= new Complex(windowed[j],0.0f);
-				
+
+
+			int inner_pad_size=windowed.length+fft_size;
+			if (i == 1) {
+				for(int j=0; j<windowed.length; j++)
+				{
+					if(j<3||j>=windowed.length-4) {
+						Log.d("WIN", ":" + windowed[j].toString());
+					}
+				}
+
 			}
-			
-			
+
+			//For my FFT
+			float[] padded=new float[inner_pad_size];
+
+
+
+			for(int j=0; j<windowed.length;j+=2) {
+				padded[j]= windowed[j];
+				padded[j+1]=0;
+
+			}
+
+			transform=new FloatFFT(inner_pad_size/2);
+			transform.complexForward(padded);
+			float[] spectrum=padded;
+			Complex[] spect=floatToComplex(spectrum);
+			if (i == 1) {
+				for(int j=0; j<spect.length; j++)
+				{
+
+					if(j<3||j>spect.length-4) {
+						Log.d("FFT", j+":" + spect[j].toString());
+					}
+				}
+
+			}
+			for(int j=0; j<spect.length;j++) {
+				spect[j] = spect[j].scale ((float) 2.0 / fft_size);
+
+			}
+			if (i == 1) {
+				for(int j=0; j<spect.length; j++)
+				{
+					if(j<3||j>=spect.length-4) {
+						Log.d("sFFT", j+":" + spect[j].toString());
+
+					}
+				}
+
+			}
+
+			float[] autopower=getAutopower(spect);
+			if (i == 1) {
+				for(int j=0; j<autopower.length; j++)
+				{
+					if(j<3||j>=autopower.length-4) {
+						Log.d("AP", j+":" + autopower[j]);
+					}
+				}
+
+			}
+
+			//For Tarsos FFT
+//
+//			float[] padded=new float[inner_pad_size];
+//			this.transform=new FloatFFT(inner_pad_size);
+//			for(int j=0; j<windowed.length;j++) {
+//				padded[j]= windowed[j];
+//
+//			}
+//
+
+//			transform.complexForwardTransform(padded);
+//			Log.d("Spect length:",""+padded.length);
+//			for(int j=0; j<padded.length;j++) {
+//				padded[j]= (float) (padded[j]*(1.0/fft_size));
+//			}
+//			float[] autopower=new float[inner_pad_size];
+
+
 //			if(i==1) {
 //				help.arrayToFile(padded, "resources/jav_padded.txt");
 //				System.out.println("Padded Size:"+padded.length);
@@ -234,12 +305,12 @@ public class STFT {
 //				}
 //				System.out.println();
 //			}
-			
+
 //			System.out.println();
 //			for(int j=0; j<padded.length; j++)
 //				if(i==26)
 //					System.out.println(padded[j]+" ");
-//				
+//
 //			if(i==0) {
 //				for(int j=0; j<10;j++) {
 //					System.out.println(padded[j]+" ");
@@ -255,10 +326,12 @@ public class STFT {
 //				}
 //				System.out.println();
 //			}
-			
-			Complex[] spectrum= FFT2.fft(padded);
-			
-			
+
+
+//			for(int j=0; j<spectrum.length; j++)
+//            {
+//
+//            }
 //			System.out.println();
 //			for(int j=0; j<spectrum.length;j++) {
 //				System.out.print(spectrum[j]+" ");
@@ -269,9 +342,7 @@ public class STFT {
 //					spectrum[j]=s.get(j);
 //				}
 //			}
-			for(int j=0; j<spectrum.length;j++)
-				spectrum[j]=spectrum[j].scale((float) (1.0/fft_size));
-			
+
 			
 //			if(i==0) {
 //				for(int j=0; j<10;j++) {
@@ -282,7 +353,7 @@ public class STFT {
 //			}
 			
 			
-			float[] autopower=getAutopower(spectrum);
+
 			
 			
 
@@ -322,12 +393,38 @@ public class STFT {
 //			System.out.println();
 
 
+		System.out.println(result.length);
+		System.out.println(result[0].length);
+		System.out.println(result[0][220]+" ");
+		System.out.println(result[0][221]+" ");
+		System.out.println(result[0][530]+" ");
+		System.out.println(result[0][531]+" ");
+		System.out.println();
 		Log.d("MyApp","Transform complete");
 
 		return result;
 		
 	}
-	
+
+	private Complex[] floatToComplex(float[] spectrum) {
+		if(spectrum.length%2==0){
+			Complex[] c=new Complex[spectrum.length/2];
+			for (int i=0; i<spectrum.length; i+=2){
+				c[i/2]=new Complex(spectrum[i],spectrum[i+1]);
+			}
+			return c;
+		}
+		else{
+			Complex[] c=new Complex[spectrum.length/2];
+			for (int i=0; i<c.length*2; i+=2){
+
+				c[i/2]=new Complex(spectrum[i],spectrum[i+1]);
+			}
+			return c;
+		}
+
+	}
+
 	public Float[] hanning(Complex[] signal, int t) {
 		
 		Float[] result=new Float[signal.length];
@@ -360,18 +457,20 @@ public class STFT {
 	
 	public float[] getAutopower(Complex[] a) {
 		Complex[] b=conjArray(a);
- 		if(a.length!=b.length) {
-    		System.out.println("ERRROR, ARRAYS MUST BE SAME SIZE");
-    		return null;
-    	}
-    	else {
-        	float[] result=new float[a.length];
-        	for(int i=0; i<result.length; i++) {
-        		result[i]=a[i].mult(b[i]).re;
-        	}
-        	return result;
-    	}
+		if(a.length!=b.length) {
+			System.out.println("ERRROR, ARRAYS MUST BE SAME SIZE");
+			return null;
+		}
+		else {
+			float[] result=new float[a.length];
+			for(int i=0; i<result.length; i++) {
+				result[i]=a[i].mult(b[i]).re;
+			}
+			return result;
+		}
 	}
+
+
 	public Complex[] conjArray(Complex[] array) {
     	Complex[] result=new Complex[array.length];
     	for(int i=0; i<array.length; i++) {

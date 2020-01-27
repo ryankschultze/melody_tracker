@@ -61,6 +61,23 @@ public class Helper {
 		
 		
 	}
+
+	public void arrayToFile(float arr[], String file) {
+		try {
+			BufferedWriter bw=new BufferedWriter(new FileWriter(new File("/storage/emulated/0/Download/Phone/Tracks/Original/signal.txt")));
+			for(int i=0; i<arr.length;i++) {
+				bw.write(arr[i]*32767.0+" ");
+			}
+			bw.write("\n");
+			bw.close();
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+
+	}
 	
 	public void arrayToFile(Complex arr[], String file) {		
 		try {
