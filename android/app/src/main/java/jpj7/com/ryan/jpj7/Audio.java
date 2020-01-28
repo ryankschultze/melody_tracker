@@ -44,6 +44,7 @@ public class Audio {
 		File file=new File(f);
 		this.loadFile(file);
 		this.fs=wavFile.getSampleRate();
+		System.out.println("Sample Rate:"+this.fs);
 		resampler=new Resampler(true,0.25,3);
 		this.readFile();
 
@@ -107,7 +108,7 @@ public class Audio {
 		int c_seg_len=2000;
 
 
-		STFT transform=new STFT(cSignal,fs);
+		STFT transform=new STFT(cSignal,22050.0f);
 		float[][] spectrum=transform.stft(cSignal);
 
 
@@ -209,14 +210,26 @@ public class Audio {
 		this.t=new Tracker(this.getSTFT());
 		ArrayList<Double> contour=t.track();
 //		this.t.writeContourToFile(contour);
-//		this.writeContour(contour);
+		this.writeContour(contour);
 //		this.copy();
 		return contour;
 	}
 
+	public ArrayList<Double> getGroundTruth(){
+		ArrayList<Double>gt=new ArrayList<Double>();
+		try {
+			gt= help.groundTruthFromFile(this.path.substring(0,this.path.length()-4)+"REF.txt");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return gt;
+	}
+
 	public void printContour(ArrayList<Double> contour){
-		ArrayList<Integer> piano =converter.convert_contout(contour);
-		PianoWriter pw=new PianoWriter(piano,name.substring(0,name.length()-4));
+		ArrayList<Integer> piano =converter.convert_contour(contour);
+		ArrayList<Integer> gt=converter.convert_contour(getGroundTruth());
+		PianoWriter pw=new PianoWriter(piano,gt,name.substring(0,name.length()-4));
 		pw.write_image();
 	}
 
@@ -273,6 +286,15 @@ public class Audio {
 		} finally {
 
 		}
+	}
+
+	public ArrayList<Double> contourFromFile() {
+		try {
+			return help.arrayFromFile(this.path.substring(0,this.path.length()-4)+".txt");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }
 

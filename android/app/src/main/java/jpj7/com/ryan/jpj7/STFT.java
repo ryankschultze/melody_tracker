@@ -12,7 +12,7 @@ import be.tarsos.dsp.util.fft.FloatFFT;
 
 public class STFT {
 	Helper help=new Helper();
-	float fs;
+	float fs=22050;
 	float overlap=0.5f;
 	float windowLength=0.05f;
 	Complex[] signal;
@@ -158,7 +158,11 @@ public class STFT {
 		int hop_size= (int) Math.floor(fft_size*this.windowLength*(1-this.overlap));
 		int total_segments=(int) Math.ceil(((float)buffer.length)/((float)hop_size));
 		float tmax=((float)buffer.length)/((float)this.fs/2);
-		result=new float[total_segments][fft_size/2];
+		System.out.println("FFT Size:"+fft_size);
+		System.out.println("Total Segments:"+total_segments);
+		System.out.println("Spectrum size="+total_segments*fft_size/2.0);
+
+		this.result=new float[total_segments][fft_size/2];
 
 		//Pad proc array to Float size
 		Complex[] proc=new Complex[buffer.length+fft_size];

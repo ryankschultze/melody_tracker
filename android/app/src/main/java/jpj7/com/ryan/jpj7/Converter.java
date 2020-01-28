@@ -24,10 +24,16 @@ public class Converter {
 		
 	}
 
-    public  ArrayList<Integer> convert_contout(ArrayList<Double> contour) {
+    public  ArrayList<Integer> convert_contour(ArrayList<Double> contour) {
 		ArrayList<Integer> piano=new ArrayList<Integer>();
 		for (int i=0; i<contour.size(); i++){
-			piano.add(freqToDegree(contour.get(i)));
+			if(contour.get(i)<85.0){
+				piano.add(1);
+			}
+			else{
+				piano.add(freqToDegree(contour.get(i)));
+			}
+
 		}
 		return piano;
 

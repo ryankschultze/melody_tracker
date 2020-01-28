@@ -24,9 +24,9 @@ class RecordPage extends StatefulWidget {
 class __RecordPageState extends State<RecordPage> {
   bool _task = false;
   String _status = "Awaiting Recording";
+  String _filename="recording";
 
-
-  record(String filename) async {
+  record() async {
     bool hasPermissions = await AudioRecorder.hasPermissions;
     if (hasPermissions) {
       bool isRecording = await AudioRecorder.isRecording;
@@ -47,7 +47,7 @@ class __RecordPageState extends State<RecordPage> {
         });
       }
       else {
-        String appDocPath = (await DownloadsPathProvider.downloadsDirectory).path+"/"+filename+".wav";
+        String appDocPath = (await DownloadsPathProvider.downloadsDirectory).path+"/"+_filename+".wav";
 
 //        await AudioRecorder.start(path: '/storage/emulated/0/Download/', audioOutputFormat: AudioOutputFormat.AAC);
         await AudioRecorder.start(
@@ -108,63 +108,97 @@ class __RecordPageState extends State<RecordPage> {
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
 
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
+        child:Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
-              _status,
+            Column(
+              children: <Widget>[
+                new RaisedButton(
+                  child: Text("Track"),
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute<Null>(builder: (BuildContext context){
+                      return new TrackingPage();
+                    }));
+                  },
+                ),
+              ],
             ),
-            Text(
-              (_task == true) ? 'Recording' : 'Stopped Recording',
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .display1,
+            Column(
+            // Column is also a layout widget. It takes a list of children and
+            // arranges them vertically. By default, it sizes itself to fit its
+            // children horizontally, and tries to be as tall as its parent.
+            //
+            // Invoke "debug painting" (press "p" in the console, choose the
+            // "Toggle Debug Paint" action from the Flutter Inspector in Android
+            // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
+            // to see the wireframe for each widget.
+            //
+            // Column has various properties to control how it sizes itself and
+            // how it positions its children. Here we use mainAxisAlignment to
+            // center the children vertically; the main axis here is the vertical
+            // axis because Columns are vertical (the cross axis would be
+            // horizontal).
+
+            children: <Widget>[
+              SizedBox(height: 100),
+              RaisedButton(
+                child: Text("Change File Name"),
+                onPressed: (){
+                  createAlertDialog(context).then((onValue){
+                    _setFileName(onValue);
+                  });
+                },
+              ),
+              Text("Saving file as \""+_filename+".wav\""),
+              SizedBox(height: 200),
+              FloatingActionButton(
+                onPressed: (){
+                  record();
+                },
+                tooltip: 'Record',
+                backgroundColor: _task? Colors.redAccent: Colors.blue,
+                child: Icon(
+                    Icons.record_voice_over,
+                ),
+              ),
+
+              SizedBox(height: 30),
+              Text(
+                (_task == true) ? 'Recording...' : 'Stopped Recording',
+
+              ),
+
+            ],
+          ),
+            Column(
+              children: <Widget>[
+                new RaisedButton(
+                  child: Text("Track"),
+                  onPressed: () {
+                    Navigator.of(context).push(MaterialPageRoute<Null>(builder: (BuildContext context){
+                      return new TrackingPage();
+                    }));
+                  },
+                ),
+              ],
             ),
-            new FlatButton(
-              child: Text("Track"),
-              onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute<Null>(builder: (BuildContext context){
-                  return new TrackingPage();
-                }));
-              },
-            ),
+
 
           ],
+
         ),
 
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: (){
-          if(_task){
-            record("sample_text");
-          }
-          else{
-            createAlertDialog(context).then((onValue){
-              record(onValue);
-            });
-          }
 
-        },
-        tooltip: 'Record',
-        child: Icon(Icons.record_voice_over),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+
+      ),
+       // This trailing comma makes auto-formatting nicer for build methods.
 
     );
   }
-
+  void _setFileName(String onValue) {
+    setState(() {
+      _filename=onValue;
+    });
+  }
 }
+

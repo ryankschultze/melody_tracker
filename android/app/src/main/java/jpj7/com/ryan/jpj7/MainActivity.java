@@ -29,6 +29,12 @@ public class MainActivity extends FlutterActivity {
         song.printContour(contour);
         result.success(contour);
       }
+      else if(methodCall.method.equals("printContour")){
+        Log.d("MyApp","Valid method call...");
+        Audio song=new Audio(file,name);
+        song.printContour(song.contourFromFile());
+//        result.success(contour);
+      }
       else{
         Log.d("MyApp","Incorrect method call...\nFilename:"+file);
 

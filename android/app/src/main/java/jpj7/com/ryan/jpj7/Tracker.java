@@ -122,7 +122,7 @@ public class Tracker {
 	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
 	public void extractPartialSpace(int t) {
 		Double[] frequencies=this.SPECTRUM[t];
-		Double[] v_range=Arrays.copyOfRange(frequencies, 100, 1100);
+		Double[] v_range=Arrays.copyOfRange(frequencies, 85, 1100);
 		ArrayList<Integer> partial_space=getExtrema(v_range);
 		ArrayList<Double> amps=new ArrayList<Double>();
 		
@@ -131,7 +131,7 @@ public class Tracker {
 		}
 		ArrayList<Double[]> space=new ArrayList<Double[]>();
 		for(int i=0; i<partial_space.size(); i++) {
-			Double[]p= {Double.parseDouble((partial_space.get(i)+100.0)+""),Math.pow(10, amps.get(i)/20)};
+			Double[]p= {Double.parseDouble((partial_space.get(i)+85)+""),Math.pow(10, amps.get(i)/20)};
 			space.add(p);			
 		}
 		int j;
@@ -249,7 +249,7 @@ public class Tracker {
 //			this.printCurrentCombs();
 			
 			//Vocal Selection
-			contour.add(vocalSelection()+40);
+			contour.add(vocalSelection());
 		}
 		
 		return contour;

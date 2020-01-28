@@ -45,6 +45,22 @@ public class Helper {
 		return data;
 		
 	}
+	public ArrayList<Double> groundTruthFromFile(String file) throws NumberFormatException, IOException{
+		BufferedReader br=new BufferedReader(new FileReader(new File(file)));
+		ArrayList<Double> data=new ArrayList<Double>();
+		String line;
+		System.out.println("Fetching ground truth...");
+		while((line=br.readLine())!=null) {
+			StringTokenizer st=new StringTokenizer(line);
+			double time=Double.parseDouble(st.nextToken());
+			Double element=Double.parseDouble(st.nextToken());
+			System.out.print(element);
+			data.add(element);
+		}
+		br.close();
+		return data;
+
+	}
 	public void arrayToFile(double arr[], String file) {		
 		try {
 			BufferedWriter bw=new BufferedWriter(new FileWriter(new File(file)));

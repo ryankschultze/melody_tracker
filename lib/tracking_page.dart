@@ -85,14 +85,28 @@ class __TrackingPageState extends State<TrackingPage> {
 
   void _track() async {
 
-
-
     if(_state!=0 && _state!=2){
       setState(() {
         _state=2;
       });
 
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return Dialog(
+            child: new Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                new CircularProgressIndicator(),
+                new Text("Loading"),
+              ],
+            ),
+          );
+        },
+      );
       await _getContour().then((List contour){
+        Navigator.pop(context);
         setState(() {
           _state=3;
           _contour=contour;
@@ -101,6 +115,10 @@ class __TrackingPageState extends State<TrackingPage> {
       });
     }
 
+   }
+
+   void _print() async{
+    await _printContour();
    }
 
   @override
@@ -166,22 +184,41 @@ class __TrackingPageState extends State<TrackingPage> {
                           : new Container(),
 
                     ),
-                      new RaisedButton(
+                    new RaisedButton(
 
-                          child: setupTrackingButtonChild(),
-                          onPressed: () =>_track()
-                      ),
-
-                   new RaisedButton(
-
-                        // ignore: sdk_version_ui_as_code
-                        child: setupPrintButtonChild(),
-                        onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute<Null>(builder: (BuildContext context){
-                            return new MetricPage();
-                          }));
-                        },
+                        child: setupTrackingButtonChild(),
+                        onPressed: () =>_track()
                     ),
+                      Row(
+                        children: <Widget>[
+                          Column(
+                            children: <Widget>[
+                              new RaisedButton(
+                                  child: setupPrintButton(),
+                                  onPressed: () =>_print()
+                              ),
+                            ],
+                          ),
+                          Column(
+                            children: <Widget>[
+                              new RaisedButton(
+
+                                // ignore: sdk_version_ui_as_code
+                                child: setupResultsButtonChild(),
+                                onPressed: () {
+                                  Navigator.of(context).push(MaterialPageRoute<Null>(builder: (BuildContext context){
+                                    return new MetricPage();
+                                  }));
+                                },
+                              )
+                            ],
+                          )
+
+
+
+
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -206,6 +243,18 @@ class __TrackingPageState extends State<TrackingPage> {
     return contour;
   }
 
+  void _printContour() async{
+    String file=_fileName;
+    try{
+      print(_fileName);
+      platform.invokeMethod("getContour",<String,dynamic>{
+        'name':_file_name,
+        'path':_file_path,
+      });
+    } catch(e){
+      print(e);
+    }
+  }
   Widget setupTrackingButtonChild() {
 
     if (_state == 1 || _state==0) {
@@ -229,7 +278,7 @@ class __TrackingPageState extends State<TrackingPage> {
     }
   }
 
-  Widget setupPrintButtonChild() {
+  Widget setupResultsButtonChild() {
 
         return new Text(
         "View Results",
@@ -238,6 +287,18 @@ class __TrackingPageState extends State<TrackingPage> {
         fontSize: 16.0,
       )
       );
+
+
+  }
+  Widget setupPrintButton() {
+
+    return new Text(
+        "Print Piano Roll",
+        style: const TextStyle(
+          color: Colors.black,
+          fontSize: 16.0,
+        )
+    );
 
 
   }
