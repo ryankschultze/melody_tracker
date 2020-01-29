@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:audio_recorder/audio_recorder.dart';
+import 'package:jpj7/vad_page.dart';
 import 'package:path_provider/path_provider.dart';
 import 'tracking_page.dart';
 import 'package:downloads_path_provider/downloads_path_provider.dart';
@@ -47,7 +48,7 @@ class __RecordPageState extends State<RecordPage> {
         });
       }
       else {
-        String appDocPath = (await DownloadsPathProvider.downloadsDirectory).path+"/"+_filename+".wav";
+        String appDocPath = (await DownloadsPathProvider.downloadsDirectory).path+"/Phone/Recordings/"+_filename+".wav";
 
 //        await AudioRecorder.start(path: '/storage/emulated/0/Download/', audioOutputFormat: AudioOutputFormat.AAC);
         await AudioRecorder.start(
@@ -173,10 +174,10 @@ class __RecordPageState extends State<RecordPage> {
             Column(
               children: <Widget>[
                 new RaisedButton(
-                  child: Text("Track"),
+                  child: Text("VAD"),
                   onPressed: () {
                     Navigator.of(context).push(MaterialPageRoute<Null>(builder: (BuildContext context){
-                      return new TrackingPage();
+                      return new VADPage();
                     }));
                   },
                 ),

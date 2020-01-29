@@ -24,16 +24,20 @@ import be.tarsos.dsp.resample.Resampler;
 public class Audio {
 	
 	WavFile wavFile;
+	VAD vad;
 	float fs;
 	double[] signal;
 	Complex[] cSignal;
+	float[] float_sig;
 	Helper help=new Helper();
 	float[][] SPECTRUM;
 	private Tracker t;
 	Converter converter=new Converter();
 	String name;
 	String path;
-	String src=" /storage/emulated/0/Download/Phone/Misc/";
+	String src="/storage/emulated/0/Download/Phone/Misc/";
+	String svc_src="/storage/emulated/0/Download/Phone/Models/SVC/";
+	String ref_src="/storage/emulated/0/Download/Phone/References/";
 	Resampler resampler;
 	public Audio(String f, String name) {
 		Log.d("MyApp","Constructing Audio...");
@@ -88,6 +92,7 @@ public class Audio {
 			Log.d("MyApp","Resample complete.");
 			//Convert to complex
 			this.cSignal = new Complex[outsig.length];
+			this.float_sig=outsig;
 	        for (int i = 0; i < outsig.length; i++)
 	        	this.cSignal[i] = new Complex( outsig[i], 0.0f);
 
@@ -214,11 +219,33 @@ public class Audio {
 //		this.copy();
 		return contour;
 	}
+	public ArrayList<Double> track_with_vad(int v_range) {
+
+		System.out.println("VAD ACTIVE...");
+		this.t=new Tracker(this.getSTFT(),v_range);
+		ArrayList<Double> contour=t.track();
+		VAD vad=new VAD(float_sig);
+		ArrayList<Double> masked_contour=vad.mask(contour,svc_src+name.substring(0,name.length()-4)+"_f.txt");
+//		this.t.writeContourToFile(contour);
+		this.writeContour(masked_contour);
+		printContour(masked_contour);
+//		this.copy();
+		return masked_contour;
+	}
+	public ArrayList<Double> track(int v_range) {
+
+		this.t=new Tracker(this.getSTFT(),v_range);
+		ArrayList<Double> contour=t.track();
+//		this.t.writeContourToFile(contour);
+		this.writeContour(contour);
+//		this.copy();
+		return contour;
+	}
 
 	public ArrayList<Double> getGroundTruth(){
 		ArrayList<Double>gt=new ArrayList<Double>();
 		try {
-			gt= help.groundTruthFromFile(this.path.substring(0,this.path.length()-4)+"REF.txt");
+			gt= help.groundTruthFromFile(ref_src+this.name.substring(0,this.name.length()-4)+"REF.txt");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -226,11 +253,14 @@ public class Audio {
 		return gt;
 	}
 
-	public void printContour(ArrayList<Double> contour){
+	public String printContour(ArrayList<Double> contour){
 		ArrayList<Integer> piano =converter.convert_contour(contour);
 		ArrayList<Integer> gt=converter.convert_contour(getGroundTruth());
 		PianoWriter pw=new PianoWriter(piano,gt,name.substring(0,name.length()-4));
-		pw.write_image();
+
+		String p_roll_dir=pw.write_image();
+		return p_roll_dir;
+
 	}
 
 	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
@@ -295,6 +325,12 @@ public class Audio {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	public boolean getVAD() {
+		vad=new VAD(float_sig);
+//		vad.mask();
+		return false;
 	}
 }
 

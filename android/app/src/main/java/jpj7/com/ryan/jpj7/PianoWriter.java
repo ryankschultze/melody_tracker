@@ -33,9 +33,9 @@ public class PianoWriter {
 
     public PianoWriter(ArrayList<Integer> contour,String filename){
         this.filename=filename;
-        piano_roll=Bitmap.createBitmap(contour.size(),88,Bitmap.Config.ARGB_8888);
+        piano_roll=Bitmap.createBitmap(contour.size(),84,Bitmap.Config.ARGB_8888);
         for(int i=0; i<contour.size(); i++){
-            for (int j=0; j<88; j++){
+            for (int j=0; j<84; j++){
                 piano_roll.setPixel(i,j, Color.WHITE);
             }
         }
@@ -43,9 +43,9 @@ public class PianoWriter {
     }
     public PianoWriter(ArrayList<Integer> contour, ArrayList<Integer> ground_truth, String filename){
         this.filename=filename;
-        piano_roll=Bitmap.createBitmap(contour.size(),88,Bitmap.Config.ARGB_8888);
+        piano_roll=Bitmap.createBitmap(contour.size(),84,Bitmap.Config.ARGB_8888);
         for(int i=0; i<contour.size(); i++){
-            for (int j=0; j<88; j++){
+            for (int j=0; j<84; j++){
                 piano_roll.setPixel(i,j, Color.WHITE);
             }
         }
@@ -53,9 +53,18 @@ public class PianoWriter {
         this.gt=ground_truth;
         this.contour=contour;
     }
+    private int getColorWithAlpha(int color, float ratio) {
+        int newColor = 0;
+        int alpha = Math.round(Color.alpha(color) * ratio);
+        int r = Color.red(color);
+        int g = Color.green(color);
+        int b = Color.blue(color);
+        newColor = Color.argb(alpha, r, g, b);
+        return newColor;
+    }
 
     @TargetApi(Build.VERSION_CODES.FROYO)
-    public void write_image(){
+    public String write_image(){
         int w = piano_roll.getWidth(), h = piano_roll.getHeight();
         int scale=12;
         // create the binary mapping
@@ -64,25 +73,40 @@ public class PianoWriter {
         for(int i=0; i<piano_roll.getWidth(); i++){
 
 //            Log.d("MyApp", "write_image: not sure whats up. contour value:"+contour.get(i).doubleValue());
-
+            piano_roll.setPixel(i, 3,Color.LTGRAY);
+            piano_roll.setPixel(i, 15,Color.LTGRAY);
+            piano_roll.setPixel(i, 27,Color.LTGRAY);
+            piano_roll.setPixel(i, 39,Color.BLUE);
+            piano_roll.setPixel(i, 51,Color.LTGRAY);
+            piano_roll.setPixel(i, 63,Color.LTGRAY);
+            piano_roll.setPixel(i, 75,Color.LTGRAY);
             if(contour.get(i).doubleValue()>piano_roll.getHeight() ||contour.get(i).doubleValue()<=0 ) {
                 Log.d("MyApp", "write_image: Note out of range:" + contour.get(i).doubleValue());
                 contour.set(i, 1);
             }
             else{
                 piano_roll.setPixel(i, (int) contour.get(i).doubleValue() - 1, Color.BLACK);
-
                 if (i<gt.size()){
                     if(hasTruth && gt.get(i)>21){
 
-//                        System.out.println(gt.get(i));
-                        piano_roll.setPixel(i, (int) gt.get(i).doubleValue() - 1, Color.RED);
+                        System.out.println("GT: "+(int)gt.get(i)+"\tC:"+((int)contour.get(i)-1));
+//                        System.out.println(contour.get(i));
+                        if((int) gt.get(i).doubleValue()==(int)contour.get(i).doubleValue()-1)
+                        {
+                            piano_roll.setPixel(i, (int) gt.get(i).doubleValue() , Color.YELLOW);
+                        }
+                        else{
+                            piano_roll.setPixel(i, (int) gt.get(i).doubleValue() , Color.RED);
+                        }
                     }
                 }
 
+
+
+
             }
         }
-        int min= Collections.max(contour)-3;
+        int min= Collections.min(contour)-3;
         int max= Collections.max(contour)+3;
         if(min<0)
             min=0;
@@ -90,45 +114,56 @@ public class PianoWriter {
         System.out.println("Score Size:"+piano_roll.getHeight());
 
         File p_roll= new File("/storage/emulated/0/Download/Phone/Piano_Rolls/"+filename+".png");
+        String pathname="/storage/emulated/0/Download/Phone/Piano_Rolls/"+filename+".png";
+
+
+        Bitmap score=piano_roll.createScaledBitmap(piano_roll, piano_roll.getWidth(), (int)piano_roll.getHeight()*10, false);
+        score=this.mirrorBitmap(score);
+
+        for(int i=0; i<score.getHeight(); i+=10){
+            for(int j=0; j<score.getWidth(); j++){
+                score.setPixel(j,i,Color.GRAY);
+
+            }
+        }
 
 
 
-
-
-        Bitmap piano=this.buildPiano((int)piano_roll.getHeight()*piano_roll.getWidth()/3);
+        Bitmap piano=this.buildPiano(score.getHeight());
+        piano=piano.createScaledBitmap(piano,piano.getWidth()*3,piano.getHeight(),false);
         System.out.println("Min Note:"+min+"\nMax Note:"+max);
         System.out.println("Score Size:"+piano_roll.getHeight());
 
-        Bitmap score=piano_roll.createScaledBitmap(piano_roll, piano_roll.getWidth(), (int)piano.getHeight(), true);
+        //add grid
 
 
-        score=this.mirrorBitmap(score);
+
         piano_roll=combineImages(piano,score);
 
+        System.out.println("Piano and score successfully combined. Width="+piano_roll.getWidth()+"\nHeight="+piano_roll.getHeight());
 
+//        piano_roll=Bitmap.createScaledBitmap(piano_roll, piano_roll.getWidth()*scale, piano_roll.getWidth()*scale/2, false);
 
-        //Crop score
-        Bitmap cropped=Bitmap.createBitmap(piano_roll, 0,min,piano_roll.getWidth(), max+min);
+        for(int i=piano.getWidth(); i<=piano_roll.getWidth(); i+=piano.getWidth()){
+            for(int j=0; j<piano_roll.getHeight(); j++){
+                piano_roll.setPixel(i,j,Color.RED);
+            }
+        }
+        min=min*10;
+        max=max*10;
         System.out.println("Min Note:"+min+"\nMax Note:"+max);
-        System.out.println("Score Size:"+cropped.getHeight());
-
-        cropped=cropped.createScaledBitmap(cropped, cropped.getWidth()*scale, cropped.getWidth()*scale/2, true);
-
-//        Bitmap resized_p_roll=Bitmap.createBitmap(piano_roll, 0,min,piano_roll.getWidth(), Collections.max(contour)+3);
-
-        for(int i=piano.getWidth()*scale; i<=cropped.getWidth(); i+=piano.getWidth()*scale){
-            for(int j=0; j<cropped.getHeight(); j++){
-                cropped.setPixel(i,j,Color.RED);
-            }
-        }
+        System.out.println("Score Size:"+piano_roll.getHeight());
 
 
-        for(int i=0; i<cropped.getHeight(); i+=4*scale){
-            for(int j=piano.getWidth()*scale; j<cropped.getWidth(); j++){
-                cropped.setPixel(j,i,Color.GRAY);
+//        if(min+max==piano_roll.getHeight()){
+//            max=((piano_roll.getHeight()-min));
+//        }
+//        System.out.println("Max + Min:"+min+max);
+        Bitmap cropped=Bitmap.createBitmap(piano_roll, 0,min,piano_roll.getWidth(), (max-min));
+        //Crop score
 
-            }
-        }
+
+
 
         try (FileOutputStream out = new FileOutputStream(p_roll)) {
 
@@ -138,10 +173,11 @@ public class PianoWriter {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return pathname;
     }
 
     private Bitmap buildPiano(int height) {
-        Log.d("MyApp", "buildPiano: Piano Height is"+height);
+
         Bitmap octave=buildOctave();
         Bitmap piano = Bitmap.createBitmap(octave.getWidth(), octave.getHeight()*7, Bitmap.Config.ARGB_8888);
 
@@ -150,7 +186,9 @@ public class PianoWriter {
         for(int i=0; i<7; i++){
             comboImage.drawBitmap(octave, 0f, i*octave.getHeight(), null);
         }
-
+        float scale=((float)(height)/(float)(octave.getHeight()));
+        piano=Bitmap.createScaledBitmap(piano,octave.getWidth()*(2),height,false);
+        Log.d("MyApp", "buildPiano: \nPiano Height is"+piano.getHeight()+"\nPiano Height is"+piano.getHeight()+"\nScale="+scale);
         return piano;
     }
 
@@ -360,6 +398,8 @@ public class PianoWriter {
         int w = piano_roll.getWidth(), h = piano_roll.getHeight();
         int scale=12;
         // create the binary mapping
+        System.out.println(gt.size());
+        System.out.println(contour.size());
         for(int i=0; i<piano_roll.getWidth(); i++){
 
 //            Log.d("MyApp", "write_image: not sure whats up. contour value:"+contour.get(i).doubleValue());
@@ -369,44 +409,77 @@ public class PianoWriter {
                 contour.set(i, 1);
             }
             else{
-                piano_roll.setPixel(i, (int) ground_truth.get(i).doubleValue() - 1, Color.RED);
-//                piano_roll.setPixel(i, (int) contour.get(i).doubleValue() - 1, Color.BLACK);
+                piano_roll.setPixel(i, (int) contour.get(i).doubleValue() - 1, Color.BLACK);
+
+                if (i<gt.size()){
+                    if(hasTruth && gt.get(i)>21){
+
+//                        System.out.println(gt.get(i));
+                        piano_roll.setPixel(i, (int) gt.get(i).doubleValue() - 1, Color.RED);
+                    }
+                }
 
             }
         }
-        int min=Collections.min(ground_truth)-3;
+        int min= Collections.max(contour)-3;
+        int max= Collections.max(contour)+3;
         if(min<0)
             min=0;
-//        Bitmap resized_p_roll=Bitmap.createBitmap(piano_roll, 0,min,piano_roll.getWidth(), Collections.max(contour)+3);
+        System.out.println("Min Note:"+min+"\nMax Note:"+max);
+        System.out.println("Score Size:"+piano_roll.getHeight());
 
-//        File p_roll= new File(Environment.DIRECTORY_DOWNLOADS.toString()+"/piano_roll.png");
-        File p_roll= new File("/storage/emulated/0/Download/Phone/Piano_Rolls/"+filename+"_truth.png");
-
-//        p_roll= new File(Environment.DIRECTORY_DOWNLOADS.toString()+"/piano_roll.png");
-////        File p_roll= new File(Environment.DIRECTORY_DOWNLOADS.toString()+"/"+filename+".png");
+        File p_roll= new File("/storage/emulated/0/Download/Phone/Piano_Rolls/"+filename+".png");
+        String pathname="/storage/emulated/0/Download/Phone/Piano_Rolls/"+filename+".png";
 
 
-        Bitmap score=piano_roll.createScaledBitmap(piano_roll, piano_roll.getWidth(), (int)piano_roll.getHeight()*3, true);
-
+        Bitmap score=piano_roll.createScaledBitmap(piano_roll, piano_roll.getWidth(), (int)piano_roll.getHeight()*10, false);
         score=this.mirrorBitmap(score);
-        Bitmap piano=this.buildPiano((int)piano_roll.getHeight()*piano_roll.getWidth()/3);
+
+        for(int i=0; i<score.getHeight(); i+=10){
+            for(int j=0; j<score.getWidth(); j++){
+                score.setPixel(j,i,Color.GRAY);
+
+            }
+        }
+
+
+
+        Bitmap piano=this.buildPiano(score.getHeight());
+        piano=piano.createScaledBitmap(piano,piano.getWidth()*3,piano.getHeight(),false);
+        System.out.println("Min Note:"+min+"\nMax Note:"+max);
+        System.out.println("Score Size:"+piano_roll.getHeight());
+
+        //add grid
+
+
+
         piano_roll=combineImages(piano,score);
 
-        piano_roll=piano_roll.createScaledBitmap(piano_roll, piano_roll.getWidth()*scale, piano_roll.getWidth()*scale/2, true);
 
+
+
+        int newHeight=piano_roll.getWidth()*scale/2;
+        int oldHeight=piano_roll.getHeight();
+        float height_scale=(float)newHeight/(float) oldHeight;
+        piano_roll=piano_roll.createScaledBitmap(piano_roll, piano_roll.getWidth()*scale, piano_roll.getWidth()*scale/2, false);
+
+//        Bitmap resized_p_roll=Bitmap.createBitmap(piano_roll, 0,min,piano_roll.getWidth(), Collections.max(contour)+3);
+        min= (int) (min*height_scale);
+        max= (int) (max*height_scale);
         for(int i=piano.getWidth()*scale; i<=piano_roll.getWidth(); i+=piano.getWidth()*scale){
             for(int j=0; j<piano_roll.getHeight(); j++){
                 piano_roll.setPixel(i,j,Color.RED);
             }
         }
 
+        System.out.println("Min Note:"+min+"\nMax Note:"+max);
+        System.out.println("Score Size:"+piano_roll.getHeight());
+//        Bitmap cropped=Bitmap.createBitmap(piano_roll, 0,min,piano_roll.getWidth(), (max+min));
+        //Crop score
 
-        for(int i=0; i<piano_roll.getHeight(); i+=5*scale){
-            for(int j=piano.getWidth()*scale; j<piano_roll.getWidth(); j++){
-                piano_roll.setPixel(j,i,Color.GRAY);
 
-            }
-        }
+
+
         try (FileOutputStream out = new FileOutputStream(p_roll)) {
 
             piano_roll.compress(Bitmap.CompressFormat.PNG, 100, out); // bmp is your Bitmap instance

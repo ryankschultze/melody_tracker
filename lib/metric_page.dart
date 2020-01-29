@@ -38,10 +38,12 @@ class __MetricPageState extends State<MetricPage> {
   String _path;
   String _path_result;
   String _path_gt;
+  Map<String, String> _paths_result;
+  Map<String, String> _paths_gt;
   Map<String, String> _paths;
   String _extension;
   bool _loadingPath = false;
-  bool _multiPick = true;
+  bool _multiPick = false;
   bool _hasValidMime = false;
   FileType _pickingType= FileType.ANY;
   TextEditingController _controller = new TextEditingController();
@@ -58,13 +60,16 @@ class __MetricPageState extends State<MetricPage> {
       setState(() => _loadingPath = true);
       try {
         if (_multiPick) {
-          _path = null;
-          _paths = await FilePicker.getMultiFilePath(
+          _path_result = null;
+          _paths_result = await FilePicker.getMultiFilePath(
               type: _pickingType, fileExtension: _extension);
         } else {
-          _paths = null;
-          _path = await FilePicker.getFilePath(
+          _paths_result = null;
+          _path_result = await FilePicker.getFilePath(
               type: _pickingType, fileExtension: _extension);
+          setState(() {
+            _groundTruth=_path_result;
+          });
         }
 
       } on PlatformException catch (e) {
@@ -74,11 +79,11 @@ class __MetricPageState extends State<MetricPage> {
       setState(() {
         _state=1;
         _loadingPath = false;
-        _fileName = _path != null
-            ? _path
+        _fileName = _path_result != null
+            ? _path_result
             .split('/')
             .last
-            : _paths != null ? _paths.keys.toString() : '...';
+            : _paths_result != null ? _paths_result.keys.toString() : '...';
       });
     }
   }
@@ -88,13 +93,16 @@ class __MetricPageState extends State<MetricPage> {
       setState(() => _loadingPath = true);
       try {
         if (_multiPick) {
-          _path = null;
-          _paths = await FilePicker.getMultiFilePath(
+          _path_gt = null;
+          _paths_gt = await FilePicker.getMultiFilePath(
               type: _pickingType, fileExtension: _extension);
         } else {
-          _paths = null;
-          _path = await FilePicker.getFilePath(
+          _paths_gt = null;
+          _path_gt = await FilePicker.getFilePath(
               type: _pickingType, fileExtension: _extension);
+          setState(() {
+            _groundTruth=_path_gt;
+          });
         }
 
       } on PlatformException catch (e) {
@@ -104,11 +112,11 @@ class __MetricPageState extends State<MetricPage> {
       setState(() {
         _state=1;
         _loadingPath = false;
-        _fileName = _path != null
-            ? _path
+        _fileName = _path_gt != null
+            ? _path_gt
             .split('/')
             .last
-            : _paths != null ? _paths.keys.toString() : '...';
+            : _paths_gt != null ? _paths_gt.keys.toString() : '...';
       });
     }
   }
@@ -118,7 +126,7 @@ class __MetricPageState extends State<MetricPage> {
 
   void _getMetrics() async{
     String gt=_groundTruth;
-    String res="/storage/emulated/0/Download/Phone/Abjones/abjones_1_02.txt";
+    String res=_result;
     List accuracies;
 
     try{
@@ -149,6 +157,7 @@ class __MetricPageState extends State<MetricPage> {
                     fontSize: 16.0,
                   ),
                 ),
+                SizedBox(height: 100),
                 FlatButton(
                     onPressed: () => Navigator.pop(context),
                     child: Text('Close')),
@@ -194,42 +203,58 @@ class __MetricPageState extends State<MetricPage> {
                     new RaisedButton(
                         onPressed: ()=>_getMetrics(),
                         child: new Text("Compare Files")),
-                    new Padding(
-                      padding: const EdgeInsets.only(top: 50.0, bottom: 20.0),
-                      child: new RaisedButton(
-                          onPressed: () => _pickResult(),
-                          child:new Text("Pick Result")
-                      ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: new RaisedButton(
+                              onPressed: () => _pickResult(),
+                              child:new Text("Pick Result")
+                          ),
+                        ),
+                        Expanded(
+                          child: new RaisedButton(
+                              onPressed: () => _pickGroundTruth(),
+                              child:new Text("Pick Ground Truth")
+                          ),
+                        )
+                      ],
                     ),
+                    Row(
+                      children: <Widget>[
+
+                      ],
+                    ),
+                    SizedBox(height: 50),
+                    new Text("Path to ground truth:"),
                     new Builder(
                       builder: (BuildContext context) => _loadingPath
                           ? Padding(
                           padding: const EdgeInsets.only(bottom: 5.0),
                           child: const CircularProgressIndicator())
-                          : _path != null || _paths != null
+                          : _path_gt != null || _paths_gt != null
                           ? new Container(
                         padding: const EdgeInsets.only(bottom: 5.0),
                         height: MediaQuery.of(context).size.height * 0.1,
                         child: new Scrollbar(
                             child: new ListView.separated(
-                              itemCount: _paths != null && _paths.isNotEmpty
-                                  ? _paths.length
+                              itemCount: _paths_gt != null && _paths_gt.isNotEmpty
+                                  ? _paths_gt.length
                                   : 1,
                               itemBuilder: (BuildContext context, int index) {
                                 final bool isMultiPath =
-                                    _paths != null && _paths.isNotEmpty;
+                                    _paths_gt != null && _paths_gt.isNotEmpty;
                                 final String name =
                                 (isMultiPath
-                                    ? _paths.keys.toList()[index]
+                                    ? _paths_gt.keys.toList()[index]
                                     : _fileName ?? '...');
                                 final path = isMultiPath
-                                    ? _paths.values.toList()[index].toString()
-                                    : _path;
-                                _groundTruth=path.toString();
+                                    ? _paths_gt.values.toList()[index].toString()
+                                    : _path_gt;
+                                _groundTruth=_path_gt;
 
                                 return new ListTile(
                                   title: new Text(
-                                    path,
+                                    _groundTruth,
                                   ),
                                 );
                               },
@@ -241,43 +266,37 @@ class __MetricPageState extends State<MetricPage> {
                           : new Container(),
 
                     ),
-
-                    new Padding(
-                      padding: const EdgeInsets.only(top: 20.0, bottom: 20.0),
-                      child: new RaisedButton(
-                          onPressed: () => _pickGroundTruth(),
-                          child:new Text("Pick Ground Truth")
-                      ),
-                    ),
+                    SizedBox(height: 50),
+                    new Text("Path to result:"),
                     new Builder(
                       builder: (BuildContext context) => _loadingPath
                           ? Padding(
                           padding: const EdgeInsets.only(bottom: 5.0),
                           child: const CircularProgressIndicator())
-                          : _path != null || _paths != null
+                          : _path_result != null || _paths_result != null
                           ? new Container(
                             padding: const EdgeInsets.only(bottom: 5.0),
                             height: MediaQuery.of(context).size.height * 0.1,
                             child: new Scrollbar(
                                 child: new ListView.separated(
-                                  itemCount: _paths != null && _paths.isNotEmpty
-                                      ? _paths.length
+                                  itemCount: _paths_result != null && _paths_result.isNotEmpty
+                                      ? _paths_result.length
                                       : 1,
                                   itemBuilder: (BuildContext context, int index) {
                                     final bool isMultiPath =
-                                        _paths != null && _paths.isNotEmpty;
+                                        _paths_result != null && _paths_result.isNotEmpty;
                                     final String name =
                                     (isMultiPath
-                                        ? _paths.keys.toList()[index]
+                                        ? _paths_result.keys.toList()[index]
                                         : _fileName ?? '...');
                                     final path = isMultiPath
-                                        ? _paths.values.toList()[index].toString()
-                                        : _path;
-                                    _result=path.toString();
+                                        ? _paths_result.values.toList()[index].toString()
+                                        : _path_result;
+                                    _result=_path_result;
 
                                 return new ListTile(
                                   title: new Text(
-                                    path,
+                                    _result,
                                   ),
                                 );
                               },
@@ -290,14 +309,6 @@ class __MetricPageState extends State<MetricPage> {
 
                     ),
 
-
-                    if(_state==3) new RaisedButton(
-
-                      // ignore: sdk_version_ui_as_code
-                      onPressed: () =>_getMetrics(),
-                      child: setupPrintButtonChild(),
-
-                    ),
                   ],
                 ),
               ),

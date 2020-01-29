@@ -184,11 +184,10 @@ public class Converter {
 		Log.d("MyApp", "Correct Pitch: "+correct);
 		Log.d("MyApp", "Number of vocal frames: "+vocal);
 		Log.d("MyApp", "Number of non-vocal frames: "+non_vocal);
-		Double NOS=getNoteOnsets(truths,records)*100;
-		Double RCA=chroma/vocal*100;
-		Double RPA=correct/vocal*100;
-		Double FA=false_voice/non_vocal*100;
-
+		Double NOS= Double.valueOf(Math.round(getNoteOnsets(truths,records)*10000)/100);
+		Double RCA= Double.valueOf(Math.round(chroma/vocal*10000)/100);
+		Double RPA= Double.valueOf(Math.round(correct/vocal*10000)/100);
+		Double FA= Double.valueOf(Math.round(false_voice/non_vocal*10000)/100);
 
 		ArrayList<String> metrics=new ArrayList<String>();
 		metrics.add(RCA.toString());

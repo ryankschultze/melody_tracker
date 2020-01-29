@@ -12,7 +12,8 @@ import io.flutter.plugins.GeneratedPluginRegistrant;
 public class MainActivity extends FlutterActivity {
   private static final String CHANNEL1="com.ryan.jpj7/track";
   private static final String CHANNEL2="com.ryan.jpj7/metric";
-
+  private Audio song;
+  private ArrayList<Double> cur_cont;
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -21,18 +22,30 @@ public class MainActivity extends FlutterActivity {
     new MethodChannel(getFlutterView(), CHANNEL1).setMethodCallHandler((methodCall, result) -> {
       String file=methodCall.argument("path");
       String name=methodCall.argument("name");
+      int v_range=methodCall.argument("v_range");
+//      String v_range=methodCall.argument("v_range");
       Log.d("MyApp","Method call: "+ methodCall.method);
       if (methodCall.method.equals("getContour")){
         Log.d("MyApp","Valid method call...");
-        Audio song=new Audio(file,name);
-        ArrayList<Double> contour=song.track();
-        song.printContour(contour);
+        song=new Audio(file,name);
+//        int vr=Integer.parseInt(v_range);
+        ArrayList<Double> contour=song.track(v_range);
+//        ArrayList<Double> contour=song.track();
+        cur_cont=contour;
+        song.printContour(cur_cont);
         result.success(contour);
       }
       else if(methodCall.method.equals("printContour")){
         Log.d("MyApp","Valid method call...");
-        Audio song=new Audio(file,name);
-        song.printContour(song.contourFromFile());
+        result.success(song.printContour(cur_cont));
+//        result.success(contour);
+      }
+      else if(methodCall.method.equals("getContour_vad")){
+        Log.d("MyApp","Valid method call...");
+        song=new Audio(file,name);
+        cur_cont=song.track_with_vad(v_range);
+//        song.printContour(cur_cont);
+        result.success(cur_cont);
 //        result.success(contour);
       }
       else{

@@ -25,8 +25,8 @@ public class Tracker {
 	int FRAMES;
 	double TIME;
 	Converter converter=new Converter(440);
-	
-	
+	int BAND_L=0;
+	int BAND_H=1100;
 	public Tracker(float[][] data) {
 		this.SPECTRUM=new Double[data.length][data[0].length];
 		for (int i=0; i<data.length; i++){
@@ -37,6 +37,45 @@ public class Tracker {
 		this.FRAMES=data.length;
 		System.out.println("Frames: "+FRAMES);
 	
+	}
+	public Tracker(float[][] data, int band) {
+		this.SPECTRUM=new Double[data.length][data[0].length];
+		for (int i=0; i<data.length; i++){
+			for(int j=0; j<data[i].length; j++){
+				this.SPECTRUM[i][j]= Double.valueOf(data[i][j]);
+			}
+		}
+		this.FRAMES=data.length;
+		System.out.println("Frames: "+FRAMES);
+		switch(band){
+			case 0:
+				System.out.println("No band-limit");
+				BAND_L=85;
+				BAND_H=1100;
+				break;
+			case 1:
+				System.out.println("Tracking for Bass");
+				BAND_L=85;
+				BAND_H=261;
+				break;
+			case 2:
+				System.out.println("Tracking for Tenor");
+				BAND_L=131;
+				BAND_H=391;
+				break;
+			case 3:
+				System.out.println("Tracking for Alto");
+				BAND_L=196;
+				BAND_H=587;
+				break;
+			case 4:
+				System.out.println("Tracking for Soprano");
+				BAND_L=262;
+				BAND_H=698;
+				break;
+		}
+
+
 	}
 	
 	public Tracker(Double[][] data,double time) {
@@ -249,7 +288,16 @@ public class Tracker {
 //			this.printCurrentCombs();
 			
 			//Vocal Selection
-			contour.add(vocalSelection());
+			double f0=vocalSelection();
+			if(f0!=0){
+				if (f0<BAND_L){
+					f0=f0*2;
+				}
+				else if(f0>BAND_H){
+					f0=f0/2;
+				}
+			}
+			contour.add(f0);
 		}
 		
 		return contour;
